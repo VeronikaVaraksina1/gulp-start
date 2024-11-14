@@ -4,14 +4,14 @@ This is a Gulp-based build setup for managing styles, scripts, and live reloadin
 
 ## Plugins Used
 
-gulp-pug: Compiles Pug files to HTML.
-gulp-sass: Compiles SCSS files to CSS.
-gulp-autoprefixer: Adds vendor prefixes to CSS properties for cross-browser compatibility.
-gulp-concat: Concatenates multiple files into one.
-gulp-uglify-es: Minifies JavaScript files.
-browser-sync: Provides live reloading for development.
-gulp-clean: Cleans the dist directory.
-gulp-purgecss: Removes unused CSS styles.
+- **gulp-pug**: Compiles Pug files to HTML.
+- **gulp-sass**: Compiles SCSS files to CSS.
+- **gulp-autoprefixer**: Adds vendor prefixes to CSS properties for cross-browser compatibility.
+- **gulp-concat**: Concatenates multiple files into one.
+- **gulp-uglify-es**: Minifies JavaScript files.
+- **browser-sync**: Provides live reloading for development.
+- **gulp-clean**: Cleans the dist directory.
+- **gulp-purgecss**: Removes unused CSS styles.
 
 ## Setup
 
