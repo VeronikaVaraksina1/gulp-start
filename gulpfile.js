@@ -1,9 +1,18 @@
 const { src, dest, watch, parallel, series } = require("gulp");
+const pug = require("gulp-pug");
 const scss = require("gulp-sass")(require("sass"));
 const concat = require("gulp-concat");
 const uglify = require("gulp-uglify-es").default;
 const browserSync = require("browser-sync").create();
 const clean = require("gulp-clean");
+const purgecss = require("gulp-purgecss");
+
+function pugToHtml() {
+  return src(["app/pug/*.pug", "!app/pug/_*.pug"])
+    .pipe(pug({ pretty: true }))
+    .pipe(dest("app"))
+    .pipe(browserSync.stream());
+}
 
 async function styles() {
   const autoprefixer = (await import("gulp-autoprefixer")).default;
@@ -24,16 +33,26 @@ function scripts() {
     .pipe(browserSync.stream());
 }
 
+function purgeCss() {
+  return src("app/css/*.css")
+    .pipe(
+      purgecss({
+        content: ["app/**/*.html", "app/**/*.pug", "app/**/*.js"],
+      })
+    )
+    .pipe(dest("app/css"));
+}
 function watching() {
   watch(["app/scss/style.scss"], styles);
   watch(["app/js/main.js"], scripts);
+  watch(["app/pug/**/*.pug"], pugToHtml);
   watch(["app/**/*.html"]).on("change", browserSync.reload);
 }
 
 function browsersync() {
   browserSync.init({
     server: {
-      baseDir: "app/",
+      baseDir: "app",
     },
   });
 }
@@ -48,10 +67,19 @@ function building() {
   }).pipe(dest("dist"));
 }
 
+exports.pugToHtml = pugToHtml;
 exports.styles = styles;
 exports.scripts = scripts;
+exports.purgeCss = purgeCss;
 exports.watching = watching;
 exports.browsersync = browsersync;
 
 exports.build = series(cleanDist, building);
-exports.default = parallel(styles, scripts, browsersync, watching);
+exports.default = parallel(
+  pugToHtml,
+  styles,
+  scripts,
+  purgeCss,
+  browsersync,
+  watching
+);

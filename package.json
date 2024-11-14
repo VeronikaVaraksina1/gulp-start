@@ -5,6 +5,8 @@
     "gulp-autoprefixer": "^9.0.0",
     "gulp-clean": "^0.4.0",
     "gulp-concat": "^2.6.1",
+    "gulp-pug": "^5.0.0",
+    "gulp-purgecss": "^6.0.0",
     "gulp-sass": "^5.1.0",
     "gulp-uglify-es": "^3.0.0",
     "sass": "^1.80.7"
