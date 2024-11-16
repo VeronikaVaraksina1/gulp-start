@@ -8,53 +8,50 @@ const clean = require("gulp-clean");
 const purgecss = require("gulp-purgecss");
 
 function pugToHtml() {
-  return src(["app/pug/*.pug", "!app/pug/_*.pug"])
+  return src(["assets/pug/*.pug", "!assets/pug/_*.pug"])
     .pipe(pug({ pretty: true }))
-    .pipe(dest("app"))
+    .pipe(dest("assets"))
     .pipe(browserSync.stream());
 }
 
 async function styles() {
   const autoprefixer = (await import("gulp-autoprefixer")).default;
 
-  return src("app/scss/style.scss")
+  return src("assets/scss/style.scss")
     .pipe(autoprefixer({ overrideBrowserlist: ["last 3 version"] }))
     .pipe(concat("style.min.css"))
     .pipe(scss({ outputStyle: "compressed" }))
-    .pipe(dest("app/css"))
+    .pipe(dest("assets/css"))
     .pipe(browserSync.stream());
 }
 
 function scripts() {
-  return src(["app/**/*.js", "!app/js/main.min.js"])
+  return src(["assets/**/*.js", "!assets/js/main.min.js"])
     .pipe(concat("main.min.js"))
     .pipe(uglify())
-    .pipe(dest("app/js"))
+    .pipe(dest("assets/js"))
     .pipe(browserSync.stream());
 }
 
 function purgeCss() {
-  return src("app/css/*.css")
+  return src("assets/css/*.css")
     .pipe(
       purgecss({
-        content: ["app/**/*.html", "app/**/*.pug", "app/**/*.js"],
+        content: ["assets/**/*.html", "assets/**/*.pug", "assets/**/*.js"],
       })
     )
-    .pipe(dest("app/css"));
+    .pipe(dest("assets/css"));
 }
 function watching() {
-  watch(["app/scss/style.scss"], styles);
-  watch(["app/js/main.js"], scripts);
-  watch(["app/pug/**/*.pug"], pugToHtml);
-  watch(["app/**/*.html"]).on("change", browserSync.reload);
-}
-
-function browsersync() {
   browserSync.init({
     server: {
-      baseDir: "app",
+      baseDir: "assets",
     },
   });
+  watch(["assets/scss/style.scss"], styles);
+  watch(["assets/js/main.js"], scripts);
+  watch(["assets/pug/**/*.pug"], pugToHtml);
+  watch(["assets/**/*.html"]).on("change", browserSync.reload);
 }
 
 function cleanDist() {
@@ -62,9 +59,12 @@ function cleanDist() {
 }
 
 function building() {
-  return src(["app/css/style.min.css", "app/js/main.min.js", "app/**/*.html"], {
-    base: "app",
-  }).pipe(dest("dist"));
+  return src(
+    ["assets/css/style.min.css", "assets/js/main.min.js", "assets/**/*.html"],
+    {
+      base: "assets",
+    }
+  ).pipe(dest("dist"));
 }
 
 exports.pugToHtml = pugToHtml;
@@ -72,14 +72,6 @@ exports.styles = styles;
 exports.scripts = scripts;
 exports.purgeCss = purgeCss;
 exports.watching = watching;
-exports.browsersync = browsersync;
 
 exports.build = series(cleanDist, building);
-exports.default = parallel(
-  pugToHtml,
-  styles,
-  scripts,
-  purgeCss,
-  browsersync,
-  watching
-);
+exports.default = parallel(pugToHtml, styles, scripts, purgeCss, watching);

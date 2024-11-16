@@ -23,8 +23,8 @@ This is a Gulp-based build setup for managing styles, scripts, and live reloadin
 
 This will:
 
-- Compile and prefix SCSS to style.min.css in the app/css directory.
-- Minify and concatenate JavaScript into main.min.js in the app/js directory.
+- Compile and prefix SCSS to style.min.css in the assets/css directory.
+- Minify and concatenate JavaScript into main.min.js in the assets/js directory.
 - Watch for changes in SCSS, JS, and HTML files and automatically reload the browser using BrowserSync.
 
 3. To build the production files:
