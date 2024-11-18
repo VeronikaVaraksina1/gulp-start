@@ -3,6 +3,7 @@ const pug = require("gulp-pug");
 const scss = require("gulp-sass")(require("sass"));
 const concat = require("gulp-concat");
 const uglify = require("gulp-uglify-es").default;
+const autoprefixer = require("gulp-autoprefixer");
 const browserSync = require("browser-sync").create();
 const clean = require("gulp-clean");
 const purgecss = require("gulp-purgecss");
@@ -54,9 +55,7 @@ function pugToHtml() {
     .pipe(browserSync.stream());
 }
 
-async function styles() {
-  const autoprefixer = (await import("gulp-autoprefixer")).default;
-
+function styles() {
   return src("assets/scss/style.scss")
     .pipe(autoprefixer({ overrideBrowserslist: ["last 3 version"] }))
     .pipe(concat("style.min.css"))
@@ -83,7 +82,7 @@ function purgeCss() {
     .pipe(dest("assets/styles/"));
 }
 
-function watching() {
+function watching(done) {
   browserSync.init({
     port: 1337,
     server: {
@@ -96,10 +95,17 @@ function watching() {
   watch(["assets/js/main.js"], scripts);
   watch(["assets/pug/**/*.pug"], pugToHtml);
   watch(["assets/**/*.html"]).on("change", browserSync.reload);
+  done();
 }
 
 function cleanDist() {
-  return src("dist").pipe(clean());
+  return src("dist/**/*").pipe(clean());
+}
+
+function copySprite() {
+  return src("assets/i/dist/sprite/sprite.svg").pipe(
+    dest(dist("dist/i/dist/sprite/"))
+  );
 }
 
 function building() {
@@ -110,7 +116,6 @@ function building() {
       "assets/**/*.html",
       "assets/styles/**/*",
       "assets/i/dist/**/*",
-      "assets/i/sprite/sprite.svg",
     ],
     {
       base: "assets",
@@ -118,14 +123,15 @@ function building() {
   ).pipe(dest("dist/"));
 }
 
+exports.fontsConvert = fontsConvert;
 exports.pugToHtml = pugToHtml;
 exports.styles = styles;
 exports.images = images;
 exports.sprite = sprite;
+exports.copySprite = copySprite;
 exports.scripts = scripts;
 exports.purgeCss = purgeCss;
 exports.watching = watching;
-exports.fontsConvert = fontsConvert;
 
 exports.build = series(cleanDist, building);
 exports.default = parallel(

@@ -36,15 +36,6 @@ This is a Gulp-based build setup for managing styles, scripts, and live reloadin
 - Generates an SVG sprite in assets/i/sprite/sprite.svg.
 - Watches for changes in SCSS, JS, Pug, and HTML files and automatically reloads the browser using BrowserSync.
 
-### Gulp tasks summary:
-
-- gulp-cssfont64: Converts font files to base64 format and embeds them directly in CSS files. (gulp fontsConvert)
-- gulp-imagemin: Optimizes images, reducing their size without quality loss. (gulp images)
-- gulp-newer: Processes only files that are newer than their counterparts in the destination directory, speeding up the build process. (gulp images)
-- gulp-purgecss: Removes unused CSS selectors to minimize the CSS file size. (gulp styles)
-- gulp-svg-sprite: Combines multiple SVG files into a single SVG sprite for easier icon usage. (gulp sprite)
-- gulp-webp: Converts images to the WebP format for better compression and performance. (gulp images)
-
 3. To build the production files:
    `gulp build`
 
@@ -52,6 +43,34 @@ This command:
 
 - Cleans the dist folder.
 - Copies CSS, JavaScript, HTML, fonts, images, and sprites into the dist folder.
+
+## Function Descriptions (gulpfile.js)
+
+- fontsConvert: This function converts .woff and .woff2 font files into Base64-encoded CSS, which is then written to the assets/styles/ directory. This is useful for embedding fonts directly in CSS files to reduce the number of HTTP requests. The function also triggers a live reload with browserSync to update the changes in real-time during development.
+
+Command:
+
+`gulp fontsConvert`
+
+- images: This function processes image files in the assets/i/src/ directory. It checks if the image files are new or updated using gulp-newer, converts them to the WebP format with a quality setting of 80 using gulp-webp, and optimizes them with gulp-imagemin for better performance. The processed images are saved to assets/i/dist/. The function also includes browserSync streaming to reflect changes without reloading the browser.
+
+Command:
+
+`gulp images`
+
+- sprite: This function generates an SVG sprite sheet from individual SVG icons located in the assets/i/dist/icons/ directory using gulp-svg-sprite. The output is a sprite file named sprite.svg saved in assets/i/sprite/. This method is efficient for using multiple icons in a web project, reducing the number of HTTP requests and enabling better maintenance of SVG assets.
+
+Command:
+
+`gulp sprite`
+
+- copySprite: This function copies the generated sprite.svg file from assets/i/dist/sprite/ to dist/i/dist/sprite/ as part of the build process. This ensures that the sprite is included in the final distribution for deployment.
+
+Command:
+
+`gulp copySprite`
+
+These functions help automate the development workflow, optimize resources, and enhance performance in web projects.
 
 ## Explanation of loadFont Function (font-loader.js)
 

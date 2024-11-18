@@ -1,3 +1,6 @@
+- title = '';
+block vars
+
 doctype html 
 html(lang="en") 
     head 
@@ -6,7 +9,7 @@ html(lang="en")
         meta(name="format-detection" content="telephone=no")
         script(src="js/font-loader.js")
         link(rel="stylesheet" media="all" href="styles/style.min.css")
-        title Dashboard
+        title #{title}
     body 
-        block content
-        script(src="../js/main.min.js")
+        block content_block
+        script(src="js/main.min.js")
