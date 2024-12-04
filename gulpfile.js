@@ -6,139 +6,147 @@ const uglify = require("gulp-uglify-es").default;
 const autoprefixer = require("gulp-autoprefixer");
 const browserSync = require("browser-sync").create();
 const clean = require("gulp-clean");
-const purgecss = require("gulp-purgecss");
 const webp = require("gulp-webp");
 const imagemin = require("gulp-imagemin");
 const newer = require("gulp-newer");
 const svgSprite = require("gulp-svg-sprite");
 const cssfont64 = require("gulp-cssfont64");
+const purify = require("gulp-purifycss");
 
 function fontsConvert() {
-  return src(["assets/fonts/*.woff", "assets/fonts/*.woff2"])
-    .pipe(cssfont64())
-    .pipe(dest("assets/styles/"))
-    .pipe(browserSync.stream());
+    return src(["assets/fonts/*.woff", "assets/fonts/*.woff2"])
+        .pipe(cssfont64())
+        .pipe(dest("dist/styles/"))
+        .pipe(browserSync.stream());
 }
 
 function images() {
-  return src("assets/i/src/**/*.*")
-    .pipe(newer("assets/i/dist/"))
-    .pipe(webp({ quality: 80 }))
+    return src(["assets/i/**/*", "!assets/i/favicon/*"])
+        .pipe(newer("dist/i/"))
+        .pipe(webp({ quality: 80 }))
 
-    .pipe(src("assets/i/src/**/*.*"))
-    .pipe(newer("assets/i/dist/"))
-    .pipe(imagemin())
+        .pipe(src("assets/i/**/*"))
+        .pipe(newer("dist/i/"))
+        .pipe(imagemin())
 
-    .pipe(dest("assets/i/dist/"))
-    .pipe(browserSync.stream({ once: true }));
+        .pipe(dest("dist/i/"))
+        .pipe(browserSync.stream({ once: true }));
 }
 
 function sprite() {
-  return src("assets/i/dist/icons/*.svg")
-    .pipe(
-      svgSprite({
-        mode: {
-          symbol: {
-            sprite: "../sprite.svg",
-            example: true,
-          },
-        },
-      })
-    )
-    .pipe(dest("assets/i/sprite/"));
-}
-
-function pugToHtml() {
-  return src(["assets/pug/*.pug", "!assets/pug/_*.pug"])
-    .pipe(pug({ pretty: true }))
-    .pipe(dest("assets/"))
-    .pipe(browserSync.stream());
-}
-
-function styles() {
-  return src("assets/scss/style.scss")
-    .pipe(autoprefixer({ overrideBrowserslist: ["last 3 version"] }))
-    .pipe(concat("style.min.css"))
-    .pipe(scss({ outputStyle: "compressed" }))
-    .pipe(dest("assets/styles/"))
-    .pipe(browserSync.stream({ once: true }));
-}
-
-function scripts() {
-  return src(["assets/**/*.js", "!assets/js/main.min.js"])
-    .pipe(concat("main.min.js"))
-    .pipe(uglify())
-    .pipe(dest("assets/js/"))
-    .pipe(browserSync.stream());
-}
-
-function purgeCss() {
-  return src("assets/styles/*.css")
-    .pipe(
-      purgecss({
-        content: ["assets/**/*.html", "assets/**/*.pug", "assets/**/*.js"],
-      })
-    )
-    .pipe(dest("assets/styles/"));
-}
-
-function watching(done) {
-  browserSync.init({
-    port: 1337,
-    server: {
-      baseDir: "assets",
-    },
-  });
-  watch(["assets/fonts/**/*"], fontsConvert);
-  watch(["assets/scss/style.scss"], styles);
-  watch(["assets/i/src/"], images);
-  watch(["assets/js/main.js"], scripts);
-  watch(["assets/pug/**/*.pug"], pugToHtml);
-  watch(["assets/**/*.html"]).on("change", browserSync.reload);
-  done();
-}
-
-function cleanDist() {
-  return src("dist/**/*").pipe(clean());
+    return src("assets/i/icons/*.svg")
+        .pipe(
+            svgSprite({
+                mode: {
+                    symbol: {
+                        sprite: "../sprite.svg",
+                        render: {
+                            scss: {
+                                dest: "../../../sass/_sprite.scss",
+                                template:
+                                    "assets/sass/templates/_sprite_template.scss",
+                            },
+                        },
+                    },
+                },
+            })
+        )
+        .pipe(dest("assets/i/sprite/"));
 }
 
 function copySprite() {
-  return src("assets/i/dist/sprite/sprite.svg").pipe(
-    dest(dist("dist/i/dist/sprite/"))
-  );
+    return src("assets/i/sprite/sprite.svg").pipe(dest("dist/i/sprite/"));
+}
+
+function pugToHtml() {
+    return src(["assets/pug/*.pug", "!assets/pug/_*.pug"])
+        .pipe(pug({ pretty: true }))
+        .pipe(dest("dist/"))
+        .pipe(browserSync.stream());
+}
+
+function styles() {
+    return src(["assets/sass/main_global.scss"])
+        .pipe(autoprefixer({ overrideBrowserslist: ["last 3 version"] }))
+        .pipe(concat("main_global.min.css"))
+        .pipe(scss({ outputStyle: "compressed" }))
+        .pipe(dest("dist/styles/"))
+        .pipe(browserSync.stream({ match: "**/*.css" }));
+}
+
+function scripts() {
+    return src([
+        "assets/**/*.js",
+        "!assets/js/main.min.js",
+        "!assets/js/font-loader.js",
+    ])
+        .pipe(concat("main.min.js"))
+        .pipe(uglify())
+        .pipe(dest("dist/js/"))
+        .pipe(browserSync.stream());
+}
+
+function clearCSS() {
+    return src("dist/styles/*.css")
+        .pipe(purify(["dist/**/*.html", "dist/**/*.js"]))
+        .pipe(scss({ outputStyle: "compressed" }))
+        .pipe(dest("build/styles/"));
+}
+
+function watching() {
+    watch(["assets/sass/**/*.scss"], styles);
+    watch(["assets/i/"], images);
+    watch(["assets/js/*.js"], scripts);
+    watch(["assets/pug/**/*.pug"], pugToHtml);
+    watch(["assets/**/*.html"]).on("change", browserSync.reload);
+}
+
+function browsersync() {
+    browserSync.init({
+        server: {
+            baseDir: "dist",
+        },
+    });
+}
+
+function cleanBuild() {
+    return src("build/**/*").pipe(clean());
+}
+
+function copyFontLoader() {
+    return src("assets/js/font-loader.js").pipe(dest("dist/js/"));
 }
 
 function building() {
-  return src(
-    [
-      "assets/styles/style.min.css",
-      "assets/js/main.min.js",
-      "assets/**/*.html",
-      "assets/styles/**/*",
-      "assets/i/dist/**/*",
-    ],
-    {
-      base: "assets",
-    }
-  ).pipe(dest("dist/"));
+    return src(
+        ["dist/styles/**/*", "dist/js/**/*", "dist/**/*.html", "dist/i/**/*"],
+        {
+            base: "dist",
+        }
+    ).pipe(dest("build/"));
 }
 
 exports.fontsConvert = fontsConvert;
+exports.copyFontLoader = copyFontLoader;
 exports.pugToHtml = pugToHtml;
-exports.styles = styles;
 exports.images = images;
+exports.styles = styles;
 exports.sprite = sprite;
 exports.copySprite = copySprite;
 exports.scripts = scripts;
-exports.purgeCss = purgeCss;
+exports.clearCSS = clearCSS;
 exports.watching = watching;
 
-exports.build = series(cleanDist, building);
+exports.generateSprite = series(sprite, copySprite);
+exports.build = series(cleanBuild, building);
 exports.default = parallel(
-  pugToHtml,
-  styles,
-  images,
-  scripts,
-  purgeCss,
-  watching
+    fontsConvert,
+    pugToHtml,
+    styles,
+    images,
+    scripts,
+    copySprite,
+    copyFontLoader,
+    watching,
+    browsersync
 );
